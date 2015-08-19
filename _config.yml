@@ -1,4 +1,5 @@
 ---
+baseurl: /rubygems-blog
 exclude:
 - vendor
 safe: true
