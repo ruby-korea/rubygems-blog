@@ -1,16 +1,16 @@
 ---
-title: Post-Mortem of Connectivity Issues on August 10th
+title: 8월 10일에 발생한 접속 문제에 대한 사후 분석
 layout: post
 author: David Radcliffe
 author_email: radcliffe.david@gmail.com
 ---
 
-RubyGems.org had intermittent connectivity problems for several periods on August 10th from about 7:08 UTC until 10:40 UTC, and again from 19:03 UTC until 19:19 UTC. This primarily disrupted gem downloads, and may have caused intermittent errors for gem pushes as well. This post aims to explain the issue and how we'll work to prevent a similar problem in the future.
+한국시간 8월 10일 16:08부터 19:40, 8월 11일 4:03부터 4:19까지(UTC 기준 8월 10일 7:08 ~ 10:40, 19:03 ~ 19:19) RubyGems.org에 간헐적인 접속 문제가 있었습니다. 주로 gem 다운로드에 지장이 있었고 간헐적으로 gem push에도 영향이 있었습니다. 이 글은 이 문제에 대한 설명과 미래에 비슷한 문제를 방지하기 위한 어떻게 해야 하는지 설명하는데 목적이 있습니다.
 
-All gems are stored in Amazon's Simple Storage Service, also known as S3. On August 10th, AWS had an extended outage in their Virginia region that affected several services, including S3. Requests to S3 to get gem files (and gemspecs) where intermittently failing, as well as requests to save new gems/gemspecs into S3. Our monitoring showed that **during this period, about 4% of download requests were failing**.
+모든 gem은 아마존 S3라고 알려진 Simple Storage Service에 저장됩니다. 8월 10일에 AWS의 S3를 포함한 버지니아 지역 서비스 중단이 예상보다 길어졌습니다. S3에서 gem(gemspecs 포함) 파일을 가져오거나 새로운 gem/gemspec을 저장하는데 있어서 간헐적인 실패가 있었습니다. 우리의 모니터링에 의하면 **이 기간 동안 4%의 다운로드 요청 실패가 있었습니다.**
 
-All gem downloads pass through Fastly, our CDN partner, where we cache gems in locations near you all around the world. Caching really saved us, since about 88% of requests were cached and didn't need to hit S3 at all. This means that 8% of all requests were hitting S3 successfully during this period.
+모든 gem 다운로드는 우리의 CDN 파트너인 Fastly를 거치게 되며, 전 세계 어디서라도 당신에게서 가까운 곳에 gem을 캐시 해둡니다. 캐시는 우리를 구해 주었는데, 88%의 요청이 캐시 되어 S3에 직접 요청하지 않았습니다. 이는 이 기간 동안 전체 요청의 8%가 S3에 성공적으로 접근했음을 의미합니다.
 
-That being said, having all our files stored in one region is still not ideal. We have plans to start replicating all our files into a second region. This will provide a backup for disaster recovery and hopefully we will also be able to serve download requests from the second region if the primary region is down.
+그렇다 해도 우리의 모든 파일이 하나의 지역에 저장돼있는 것은 여전히 이상적이지 않습니다. 우리는 모든 파일을 또 다른 지역에 복제하려는 계획을 가지고 있습니다. 이는 재앙으로부터 복구하는데 필요한 백업을 지원하면서 만약 첫 번째 지역 접속이 안되더라도 두 번째 지역에서 다운로드를 처리할 수 있게 합니다.
 
-I'm sorry we had trouble serving requests this week, and we're making some changes to improve this for the future.
+이번 주에 요청을 처리하는데 문제가 있어서 죄송하며, 미래를 위한 개선의 노력을 하겠습니다.
